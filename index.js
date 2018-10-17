@@ -6,14 +6,16 @@ function assert(condition, message) {
   }
 }
 
-async function launchURL(url) {
+async function launchURL(url, urlEncode) {
   const supported = await Linking.canOpenURL(url)
+  const supportedEncode = await Linking.canOpenURL(urlEncode)
 
-  if (!supported) {
+  if (!supported && !supportedEncode) {
     return Promise.reject(new Error('Provided URL can not be handled')) // eslint-disable-line
   }
 
-  return Linking.openURL(url)
+  if (supported) return Linking.openURL(url)
+  return Linking.openURL(urlEncode)
 }
 
 function sms(phone = '', body = '') {
@@ -22,10 +24,13 @@ function sms(phone = '', body = '') {
 
   const sep = Platform.OS === 'ios' ? '&' : '?'
   const url = `sms:${phone}${
+    body ? `${sep}body=${body}` : ''
+  }`
+  const urlEncode = `sms:${phone}${
     body ? `${sep}body=${encodeURIComponent(body)}` : ''
   }`
 
-  return launchURL(url)
+  return launchURL(url, urlEncode)
 }
 
 export default sms
